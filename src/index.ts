@@ -1,24 +1,47 @@
-export type IClient = Partial<{ sessionId: string }>;
-export type ICallback<State=any> = (state: State, payload: any, client?: IClient) => void;
-export type IMutationActions<Action extends string, State=any> = { [key in Action]?: ICallback<State> };
+import { Room } from "colyseus";
 
-export class Dispatcher<Actions extends string> {
+export type IClient = Partial<{ sessionId: string }>;
+
+export abstract class Command<State = any, T = any> {
+  payload: T;
+
+  room: Room<State>;
+  state: State;
+
+  private nextCommands: Array<{ command: Command, client: IClient }>;
+
+  constructor(payload?: T) {
+    this.payload = payload;
+  }
+
+  abstract execute(client?: IClient);
+
+  validate?(client?: IClient);
+
+  dispatch(command: Command, client?: IClient) {
+    if (!this.nextCommands) { this.nextCommands = []; }
+    this.nextCommands.push({ command, client });
+  }
+}
+
+export class Dispatcher {
   room: any;
-  mutations: { [key in Actions]?: ICallback } = {};
 
   constructor(room: any) {
     this.room = room;
   }
 
-  register(mutations: IMutationActions<Actions>) {
-    for (const action in mutations) {
-      this.mutations[action] = mutations[action];
-    }
-  }
-
-  dispatch(action: Actions, payload: any, client?: IClient) {
+  dispatch(command: Command, client?: IClient) {
     try {
-      this.mutations[action](this.room.state, payload, client);
+      command.room = this.room;
+      command.state = this.room.state;
+
+      if (
+        !command.validate ||
+        command.validate(client)
+      ) {
+        command.execute(client);
+      }
 
     } catch (e) {
       console.log("ERROR!", e);
@@ -29,6 +52,14 @@ export class Dispatcher<Actions extends string> {
       if (client) {
         this.room.send(client, { error: e.message });
       }
+    }
+
+    //
+    // Trigger next commands!
+    //
+    if (command['nextCommands']) {
+      command['nextCommands'].forEach((next) =>
+        this.dispatch(next.command, next.client));
     }
   }
 }

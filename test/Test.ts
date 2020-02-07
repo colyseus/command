@@ -1,7 +1,7 @@
 import assert from "assert";
 
 import { Dispatcher } from "../src";
-import { CardGameState, Actions, actions, Player, Card } from "./scenarios/CardGameScenario";
+import { CardGameState, Player, Card, DiscardCommand, DrawCommand } from "./scenarios/CardGameScenario";
 import { Room, Client } from "./mock/colyseus";
 
 describe("@colyseus/action", () => {
@@ -29,9 +29,8 @@ describe("@colyseus/action", () => {
 
     assert.equal(3, player1.cards.length);
 
-    const dispatcher = new Dispatcher<Actions>(room);
-    dispatcher.register(actions);
-    dispatcher.dispatch("discard", { index: 2 }, client1);
+    const dispatcher = new Dispatcher(room);
+    dispatcher.dispatch(new DiscardCommand(2), client1);
 
     assert.equal(2, player1.cards.length);
   });
@@ -53,9 +52,8 @@ describe("@colyseus/action", () => {
 
     assert.equal(3, player1.cards.length);
 
-    const dispatcher = new Dispatcher<Actions>(room);
-    dispatcher.register(actions);
-    dispatcher.dispatch("draw", {}, client1);
+    const dispatcher = new Dispatcher(room);
+    dispatcher.dispatch(new DrawCommand(), client1);
 
     assert.equal(4, player1.cards.length);
   });

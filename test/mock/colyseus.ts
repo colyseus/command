@@ -1,3 +1,5 @@
+import { Schema, type } from "@colyseus/schema";
+
 import nanoid from "nanoid";
 
 export class Client {
@@ -5,7 +7,7 @@ export class Client {
   messages: any[] = [];
 }
 
-export class Room<T> {
+export class Room<T = any> {
   state: T;
   clients: Client[] = [];
 

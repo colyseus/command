@@ -1,4 +1,4 @@
-import { IMutationActions } from "../../src/index";
+import { Command } from "../../src/index";
 
 export class Card {
   number: number;
@@ -13,37 +13,34 @@ export class Player {
 export class CardGameState {
   isGameOver: boolean = false;
   players = new Map<string, Player>();
+  currentTurn: string;
 }
 
-export type Actions = "draw" | "discard";
-
-function isValidAction(state: CardGameState) {
-  return !state.isGameOver;
+export class NextTurnCommand extends Command<CardGameState> {
+  execute() {
+    const sessionIds = Object.keys(this.state.players);
+    this.state.currentTurn = (this.state.currentTurn)
+      ? sessionIds[(sessionIds.indexOf(this.state.currentTurn) + 1) % sessionIds.length]
+      : sessionIds[0];
+  }
 }
 
-export const actions: IMutationActions<Actions, CardGameState> = {
-  discard: (state, payload: { index: number }, client) => {
-    // TODO: validating should be more clean than this
-    if (!isValidAction(state)) {
-      throw new Error("can't do this right now.");
-    }
+export class DiscardCommand extends Command<CardGameState, number> {
 
-    const player = state.players.get(client.sessionId);
+  validate(client) {
+    const player = this.state.players.get(client.sessionId);
+    return player && player.cards[this.payload];
+  }
 
-    // throwing Error will send an "error" message to current client
-    if (!player) {
-      throw new Error("player not found!");
-    }
+  execute(client) {
+    this.state.players.get(client.sessionId).cards.splice(this.payload, 1);
+  }
+}
 
-    if (!player.cards[payload.index]) {
-      throw new Error("card not found!");
-    }
+export class DrawCommand extends Command<CardGameState> {
 
-    player.cards.splice(payload.index, 1);
-  },
-
-  draw: (state, payload, client) => {
-    state.players.get(client.sessionId).cards.push(new Card());
-  },
+  execute(client) {
+    this.state.players.get(client.sessionId).cards.push(new Card());
+  }
 
 }
