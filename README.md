@@ -2,8 +2,8 @@
 
 **Why?**
 
-- Models ([`@colyseus/schema`](https://github.com/colyseus/schema)) should contain only data, no logic.
-- Game Rooms should act as a Controller, and contain only glue code between data sent by the
+- Models ([`@colyseus/schema`](https://github.com/colyseus/schema)) should contain only data, without game logic.
+- Rooms should have a little code as possible, and forward actions to other structures
 
 **Inspiration:**
 
