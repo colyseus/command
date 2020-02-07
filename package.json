@@ -1,5 +1,5 @@
 {
-  "name": "@colyseus/actions",
+  "name": "@colyseus/command",
   "version": "0.0.0",
   "description": "Action dispatcher for Colyseus",
   "main": "lib/index.js",

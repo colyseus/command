@@ -12,7 +12,7 @@
 
 ## How it works
 
-- See [action definitions](https://github.com/endel/actions/blob/master/test/scenarios/CardGameScenario.ts)
+- See [command definitions](https://github.com/endel/actions/blob/master/test/scenarios/CardGameScenario.ts)
 - See [usage](https://github.com/endel/actions/blob/master/test/Test.ts)
 - See [implementation](https://github.com/endel/actions/blob/master/src/index.ts)
 
