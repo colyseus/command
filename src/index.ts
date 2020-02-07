@@ -31,7 +31,7 @@ export class Dispatcher {
     this.room = room;
   }
 
-  dispatch(command: Command, client?: IClient) {
+  async dispatch(command: Command, client?: IClient) {
     try {
       command.room = this.room;
       command.state = this.room.state;
@@ -40,7 +40,7 @@ export class Dispatcher {
         !command.validate ||
         command.validate(client)
       ) {
-        command.execute(client);
+        await command.execute(client);
       }
 
     } catch (e) {
