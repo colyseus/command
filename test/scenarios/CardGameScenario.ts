@@ -23,12 +23,14 @@ function isValidAction(state: CardGameState) {
 
 export const actions: IMutationActions<Actions, CardGameState> = {
   discard: (state, payload: { index: number }, client) => {
+    // TODO: validating should be more clean than this
     if (!isValidAction(state)) {
       throw new Error("can't do this right now.");
     }
 
     const player = state.players.get(client.sessionId);
 
+    // throwing Error will send an "error" message to current client
     if (!player) {
       throw new Error("player not found!");
     }
