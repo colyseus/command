@@ -14,6 +14,7 @@
 
 - Validating actions should be part of the design
 - Arguments for actions should be strongly typed via TypeScript
+- An action should be able to `dispatch` more actions
 
 - See [action definitions](https://github.com/endel/actions/blob/f2c4984afe6420ceea9643ad8e8225fb7fd6f978/test/scenarios/CardGameScenario.ts#L18-L49)
 - See [usage](https://github.com/endel/actions/blob/f2c4984afe6420ceea9643ad8e8225fb7fd6f978/test/Test.ts#L16-L36)
