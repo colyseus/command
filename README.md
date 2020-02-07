@@ -10,11 +10,7 @@
 - Vuex
 - Flux
 
-## Current problems
-
-- Validating actions should be part of the design
-- Arguments for actions should be strongly typed via TypeScript
-- An action should be able to `dispatch` more actions
+## How it works
 
 - See [action definitions](https://github.com/endel/actions/blob/master/test/scenarios/CardGameScenario.ts)
 - See [usage](https://github.com/endel/actions/blob/master/test/Test.ts)
