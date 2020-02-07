@@ -1,4 +1,4 @@
-# @colyseus/actions
+# @colyseus/command
 
 **Why?**
 
