@@ -2,15 +2,15 @@ import { Room } from "colyseus";
 
 export type IClient = Partial<{ sessionId: string }>;
 
-export abstract class Command<State = any, T = any> {
-  payload: T;
+export abstract class Command<State = any, Payload = any> {
+  payload: Payload;
 
   room: Room<State>;
   state: State;
 
   private nextCommands: Array<{ command: Command, client: IClient }>;
 
-  constructor(payload?: T) {
+  constructor(payload?: Payload) {
     this.payload = payload;
   }
 
