@@ -5,10 +5,13 @@
 - Models ([`@colyseus/schema`](https://github.com/colyseus/schema)) should contain only data, without game logic.
 - Rooms should have a little code as possible, and forward actions to other structures
 
-**Inspiration:**
+The command pattern has several advantages, such as:
 
-- Vuex
-- Flux
+- It decouples the classes that invoke the operation from the object that knows how to execute the operation.
+- It allows you to create a sequence of commands by providing a queue system.
+- Implementing extensions to add a new command is easy and can be done without changing the existing code.
+- Have strict control over how and when commands are invoked.
+- The code is easier to use, understand and test since the commands simplify the code.
 
 ## How it works
 

@@ -29,7 +29,7 @@ export class DiscardCommand extends Command<CardGameState, number> {
 
   validate(client) {
     const player = this.state.players.get(client.sessionId);
-    return player && player.cards[this.payload];
+    return player && player.cards[this.payload] !== undefined;
   }
 
   execute(client) {
