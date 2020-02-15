@@ -1,5 +1,7 @@
 # @colyseus/command
 
+<img src="https://img.shields.io/travis/endel/command.svg?style=for-the-badge" alt="Build status" />
+
 This is an early version of the Command Pattern to be used along with Colyseus. The API may change at any time.
 
 **Why?**
