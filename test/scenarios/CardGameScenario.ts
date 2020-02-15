@@ -69,6 +69,11 @@ export class EnqueueAsyncCommand extends Command<CardGameState, { count: number 
 
 export class ChildAsyncCommand extends Command<CardGameState, { i: number }> {
   async execute({ i }) {
-    this.state.i += i;
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        this.state.i += i;
+        resolve();
+      }, 500)
+    })
   }
 }

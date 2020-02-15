@@ -18,7 +18,7 @@ export abstract class Command<State = any, Payload = unknown> {
     Array<Command> |
     void |
     Promise<Array<Command>> |
-    Promise<void>;
+    Promise<unknown>;
 
   /**
    * Delay the execution by `milliseconds`
@@ -36,8 +36,7 @@ export class Dispatcher {
     this.room = room;
   }
 
-  dispatch<T extends Command<any, any>>(command: T, payload?: T['payload']): boolean | Promise<boolean> {
-    let success: boolean = true;
+  dispatch<T extends Command<any, any>>(command: T, payload?: T['payload']): void | Promise<unknown> {
     let nextCommands: any;
 
     try {
@@ -53,48 +52,49 @@ export class Dispatcher {
         nextCommands = command.execute(command.payload);
 
         if (nextCommands instanceof Promise) {
-          nextCommands.then((nextCommands) =>
-            this.handleCommandResponse(command, nextCommands));
+          return nextCommands.then(childCommands => this.handleCommandResponse(command, childCommands));
 
         } else {
-          this.handleCommandResponse(command, nextCommands);
+          return this.handleCommandResponse(command, nextCommands);
         }
 
       } else {
-        success = false;
+        // TODO: log validation failed
       }
 
     } catch (e) {
+      // TODO: log error
       console.log("ERROR!", e);
-      success = false;
       throw e;
     }
-
-    return success;
   }
 
   private handleCommandResponse(
     source: Command,
     nextCommands: void | Command[] | Array<Promise<Command[] | void>>
   ) {
+    const results: any[] = [];
+
     //
     // Trigger next commands!
     //
     if (Array.isArray(nextCommands)) {
+
       for (let i = 0; i < nextCommands.length; i++) {
-        if (!nextCommands[i]) {
-          continue;
-        }
+        if (!nextCommands[i]) { continue; }
 
         if (nextCommands[i] instanceof Promise) {
-          (nextCommands[i] as Promise<Command[] | void>).then((nextCommands) =>
-            this.handleCommandResponse(source, nextCommands));
+          results.push(
+            (nextCommands[i] as Promise<Command[] | void>).then((nextCommands) =>
+              this.handleCommandResponse(source, nextCommands))
+          );
 
         } else {
-          this.dispatch(nextCommands[i] as Command);
+          results.push(this.dispatch(nextCommands[i] as Command));
         }
-
       }
     }
+
+    return Promise.all(results);
   }
 }

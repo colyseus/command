@@ -1,5 +1,7 @@
 # @colyseus/command
 
+This is an early version of the Command Pattern to be used along with Colyseus. The API may change at any time.
+
 **Why?**
 
 - Models ([`@colyseus/schema`](https://github.com/colyseus/schema)) should contain only data, without game logic.
@@ -18,8 +20,6 @@ The command pattern has several advantages, such as:
 - See [command definitions](https://github.com/endel/actions/blob/master/test/scenarios/CardGameScenario.ts)
 - See [usage](https://github.com/endel/actions/blob/master/test/Test.ts)
 - See [implementation](https://github.com/endel/actions/blob/master/src/index.ts)
-
-
 
 
 ## License

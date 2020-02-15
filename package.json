@@ -4,7 +4,7 @@
   "description": "Action dispatcher for Colyseus",
   "main": "lib/index.js",
   "scripts": {
-    "test": "mocha --require ts-node/register test/**Test.ts --exit --timeout 15000"
+    "test": "mocha --require ts-node/register test/**Test.ts --timeout 15000"
   },
   "repository": {
     "type": "git",
