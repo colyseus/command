@@ -1,7 +1,7 @@
 import assert from "assert";
 
 import { Dispatcher } from "../src";
-import { CardGameState, Player, Card, DiscardCommand, DrawCommand } from "./scenarios/CardGameScenario";
+import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand } from "./scenarios/CardGameScenario";
 import { Room, Client } from "./mock/colyseus";
 
 describe("@colyseus/action", () => {
@@ -30,7 +30,7 @@ describe("@colyseus/action", () => {
     assert.equal(3, player1.cards.length);
 
     const dispatcher = new Dispatcher(room);
-    dispatcher.dispatch(new DiscardCommand(2), client1);
+    dispatcher.dispatch(new DiscardCommand(), { sessionId: client1.sessionId, index: 2 });
 
     assert.equal(2, player1.cards.length);
   });
@@ -53,9 +53,16 @@ describe("@colyseus/action", () => {
     assert.equal(3, player1.cards.length);
 
     const dispatcher = new Dispatcher(room);
-    dispatcher.dispatch(new DrawCommand(), client1);
+    dispatcher.dispatch(new DrawCommand(), { sessionId: client1.sessionId });
 
     assert.equal(4, player1.cards.length);
+  });
+
+
+  it("should enqueue returned commands", () => {
+    const dispatcher = new Dispatcher(room);
+    dispatcher.dispatch(new EnqueueCommand(), { count: 5 });
+    assert.equal(25, room.state.i);
   });
 
 });

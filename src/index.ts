@@ -2,25 +2,25 @@ import { Room, Client } from "colyseus";
 
 export type IClient = { sessionId: string };
 
-export abstract class Command<State = any, Payload = any> {
+export abstract class Command<State, Payload = never> {
   payload: Payload;
 
   room: Room<State>;
   state: State;
   clock: Room['clock'];
 
-  constructor(payload?: Payload) {
+  setPayload(payload: this['payload']) {
     this.payload = payload;
+    return this;
   }
 
-  validate?(client?: IClient): boolean;
+  validate?(payload: this['payload']): boolean;
 
-  abstract execute(client?: IClient):
-    Array<Command> |
+  abstract execute(payload: this['payload']):
+    Array<Command<any, any>> |
     void |
-    Promise<Array<Command>> |
+    Promise<Array<Command<any, any>>> |
     Promise<void>;
-
 
   /**
    * Delay the execution by `milliseconds`
@@ -38,17 +38,35 @@ export class Dispatcher {
     this.room = room;
   }
 
-  async dispatch(command: Command, client?: IClient): Promise<boolean> {
+  async dispatch<T extends Command<any, any>>(command: T, payload?: T['payload']): Promise<boolean> {
     let success: boolean = true;
-    let nextCommands: void | Array<Command>;
+    let nextCommands: any;
 
     try {
       command.room = this.room;
       command.state = this.room.state;
       command.clock = this.room.clock;
 
-      if (!command.validate || command.validate(client)) {
-        nextCommands = await command.execute(client);
+      if (payload) {
+        command.setPayload(payload);
+      }
+
+      if (!command.validate || command.validate(command.payload)) {
+        nextCommands = command.execute(command.payload);
+
+        if (nextCommands instanceof Promise) {
+          nextCommands = (await nextCommands);
+        }
+
+        if (
+          Array.isArray(nextCommands) &&
+          nextCommands[0] &&
+          nextCommands[0] instanceof Promise
+        ) {
+          nextCommands = await Promise.all(nextCommands);
+        }
+
+        console.log("NEXT COMMANDS:", nextCommands);
 
       } else {
         success = false;
@@ -57,27 +75,19 @@ export class Dispatcher {
     } catch (e) {
       console.log("ERROR!", e);
       success = false;
-
-      //
-      // If 'client' has been provided, expose error to it.
-      //
-      if (client) {
-        this.room.send(client as Client, { error: e.message });
-      }
+      throw e;
     }
 
     //
     // Trigger next commands!
     //
     if (Array.isArray(nextCommands)) {
-      const results = await Promise.all(nextCommands.map((nextCommand) => {
-        if (!nextCommand) {
+      for (let i=0; i<nextCommands.length; i++) {
+        if (!nextCommands[i]) {
           console.log("INVALID COMMAND AS A RESULT FROM", command.constructor.name);
         }
-
-        return this.dispatch(nextCommand, client);
-      }));
-      success = results.every((result) => result === true);
+        this.dispatch(nextCommands[i]);
+      }
     }
 
     return success;

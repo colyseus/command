@@ -14,9 +14,10 @@ export class CardGameState {
   isGameOver: boolean = false;
   players = new Map<string, Player>();
   currentTurn: string;
+  i: number;
 }
 
-export class NextTurnCommand extends Command<CardGameState> {
+export class NextTurnCommand extends Command<CardGameState, {}> {
   execute() {
     const sessionIds = Object.keys(this.state.players);
     this.state.currentTurn = (this.state.currentTurn)
@@ -25,22 +26,34 @@ export class NextTurnCommand extends Command<CardGameState> {
   }
 }
 
-export class DiscardCommand extends Command<CardGameState, number> {
-
-  validate(client) {
-    const player = this.state.players.get(client.sessionId);
-    return player && player.cards[this.payload] !== undefined;
+export class DiscardCommand extends Command<CardGameState, { sessionId: string, index: number }> {
+  validate({ sessionId, index } = this.payload) {
+    const player = this.state.players.get(sessionId);
+    return player && player.cards[index] !== undefined;
   }
 
-  execute(client) {
-    this.state.players.get(client.sessionId).cards.splice(this.payload, 1);
+  execute({ sessionId, index } = this.payload) {
+    this.state.players.get(sessionId).cards.splice(index, 1);
   }
 }
 
-export class DrawCommand extends Command<CardGameState> {
-
-  execute(client) {
-    this.state.players.get(client.sessionId).cards.push(new Card());
+export class DrawCommand extends Command<CardGameState, { sessionId: string }> {
+  execute({ sessionId }) {
+    this.state.players.get(sessionId).cards.push(new Card());
   }
+}
 
+export class EnqueueCommand extends Command<CardGameState, { count: number }> {
+  execute({ count }) {
+    this.state.i = 0;
+
+    return [...Array(count)].map(_ =>
+      new ChildCommand().setPayload({ i: count }));
+  }
+}
+
+export class ChildCommand extends Command<CardGameState, { i: number }> {
+  execute({ i }) {
+    this.state.i += i;
+  }
 }
