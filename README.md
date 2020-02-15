@@ -9,7 +9,7 @@ This is an early version of the Command Pattern to be used along with Colyseus. 
 - Models ([`@colyseus/schema`](https://github.com/colyseus/schema)) should contain only data, without game logic.
 - Rooms should have a little code as possible, and forward actions to other structures
 
-The command pattern has several advantages, such as:
+**The command pattern has several advantages, such as:**
 
 - It decouples the classes that invoke the operation from the object that knows how to execute the operation.
 - It allows you to create a sequence of commands by providing a queue system.
