@@ -29,7 +29,7 @@ export class NextTurnCommand extends Command<CardGameState, {}> {
 export class DiscardCommand extends Command<CardGameState, { sessionId: string, index: number }> {
   validate({ sessionId, index } = this.payload) {
     const player = this.state.players.get(sessionId);
-    return player && player.cards[index] !== undefined;
+    return player !== undefined && player.cards[index] !== undefined;
   }
 
   execute({ sessionId, index } = this.payload) {
@@ -54,6 +54,21 @@ export class EnqueueCommand extends Command<CardGameState, { count: number }> {
 
 export class ChildCommand extends Command<CardGameState, { i: number }> {
   execute({ i }) {
+    this.state.i += i;
+  }
+}
+
+export class EnqueueAsyncCommand extends Command<CardGameState, { count: number }> {
+  async execute({ count }) {
+    this.state.i = 0;
+
+    return [...Array(count)].map(_ =>
+      new ChildAsyncCommand().setPayload({ i: count }));
+  }
+}
+
+export class ChildAsyncCommand extends Command<CardGameState, { i: number }> {
+  async execute({ i }) {
     this.state.i += i;
   }
 }

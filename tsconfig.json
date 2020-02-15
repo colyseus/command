@@ -5,6 +5,8 @@
         "lib": ["es5"],
         "target": "es2015",
         "declaration": true,
+        "strict": true,
+        "strictNullChecks": false,
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "noImplicitAny": false,

@@ -1,7 +1,7 @@
 import assert from "assert";
 
 import { Dispatcher } from "../src";
-import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand } from "./scenarios/CardGameScenario";
+import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand } from "./scenarios/CardGameScenario";
 import { Room, Client } from "./mock/colyseus";
 
 describe("@colyseus/action", () => {
@@ -58,10 +58,15 @@ describe("@colyseus/action", () => {
     assert.equal(4, player1.cards.length);
   });
 
-
   it("should enqueue returned commands", () => {
     const dispatcher = new Dispatcher(room);
     dispatcher.dispatch(new EnqueueCommand(), { count: 5 });
+    assert.equal(25, room.state.i);
+  });
+
+  it("should enqueue async commands", async () => {
+    const dispatcher = new Dispatcher(room);
+    await dispatcher.dispatch(new EnqueueAsyncCommand(), { count: 5 });
     assert.equal(25, room.state.i);
   });
 

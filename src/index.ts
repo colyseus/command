@@ -1,8 +1,6 @@
-import { Room, Client } from "colyseus";
+import { Room } from "colyseus";
 
-export type IClient = { sessionId: string };
-
-export abstract class Command<State, Payload = never> {
+export abstract class Command<State = any, Payload = unknown> {
   payload: Payload;
 
   room: Room<State>;
@@ -17,9 +15,9 @@ export abstract class Command<State, Payload = never> {
   validate?(payload: this['payload']): boolean;
 
   abstract execute(payload: this['payload']):
-    Array<Command<any, any>> |
+    Array<Command> |
     void |
-    Promise<Array<Command<any, any>>> |
+    Promise<Array<Command>> |
     Promise<void>;
 
   /**
@@ -38,7 +36,7 @@ export class Dispatcher {
     this.room = room;
   }
 
-  async dispatch<T extends Command<any, any>>(command: T, payload?: T['payload']): Promise<boolean> {
+  dispatch<T extends Command<any, any>>(command: T, payload?: T['payload']): boolean | Promise<boolean> {
     let success: boolean = true;
     let nextCommands: any;
 
@@ -55,18 +53,12 @@ export class Dispatcher {
         nextCommands = command.execute(command.payload);
 
         if (nextCommands instanceof Promise) {
-          nextCommands = (await nextCommands);
-        }
+          nextCommands.then((nextCommands) =>
+            this.handleCommandResponse(command, nextCommands));
 
-        if (
-          Array.isArray(nextCommands) &&
-          nextCommands[0] &&
-          nextCommands[0] instanceof Promise
-        ) {
-          nextCommands = await Promise.all(nextCommands);
+        } else {
+          this.handleCommandResponse(command, nextCommands);
         }
-
-        console.log("NEXT COMMANDS:", nextCommands);
 
       } else {
         success = false;
@@ -78,18 +70,31 @@ export class Dispatcher {
       throw e;
     }
 
+    return success;
+  }
+
+  private handleCommandResponse(
+    source: Command,
+    nextCommands: void | Command[] | Array<Promise<Command[] | void>>
+  ) {
     //
     // Trigger next commands!
     //
     if (Array.isArray(nextCommands)) {
-      for (let i=0; i<nextCommands.length; i++) {
+      for (let i = 0; i < nextCommands.length; i++) {
         if (!nextCommands[i]) {
-          console.log("INVALID COMMAND AS A RESULT FROM", command.constructor.name);
+          continue;
         }
-        this.dispatch(nextCommands[i]);
+
+        if (nextCommands[i] instanceof Promise) {
+          (nextCommands[i] as Promise<Command[] | void>).then((nextCommands) =>
+            this.handleCommandResponse(source, nextCommands));
+
+        } else {
+          this.dispatch(nextCommands[i] as Command);
+        }
+
       }
     }
-
-    return success;
   }
 }
