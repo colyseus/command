@@ -36,7 +36,7 @@ export class Dispatcher {
     this.room = room;
   }
 
-  dispatch<T extends Command<any, any>>(command: T, payload?: T['payload']): void | Promise<unknown> {
+  dispatch<T extends Command>(command: T, payload?: T['payload']): void | Promise<unknown> {
     let nextCommands: any;
 
     try {
