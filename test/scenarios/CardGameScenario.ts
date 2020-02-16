@@ -73,7 +73,82 @@ export class ChildAsyncCommand extends Command<CardGameState, { i: number }> {
       setTimeout(() => {
         this.state.i += i;
         resolve();
-      }, 500)
+      }, 100)
     })
+  }
+}
+
+export class AsyncSequence extends Command {
+  execute() {
+    return [new Wait().setPayload(1), new Wait().setPayload(2), new Wait().setPayload(3)];
+  }
+}
+
+export class Wait extends Command<any, number> {
+  async execute(number) {
+    await this.delay(100);
+  }
+}
+
+//
+// DEEP SYNC
+//
+export class DeepSync extends Command<CardGameState> {
+  execute() {
+    this.state.i = 0;
+    return [new DeepOneSync(), new DeepOneSync()];
+  }
+}
+
+export class DeepOneSync extends Command<CardGameState> {
+  execute() {
+    this.state.i += 1;
+    return [new DeepTwoSync()];
+  }
+}
+
+export class DeepTwoSync extends Command<CardGameState> {
+  execute() {
+    this.state.i += 10;
+    return [new DeepThreeSync()];
+  }
+}
+
+export class DeepThreeSync extends Command<CardGameState> {
+  execute() {
+    this.state.i += 100;
+  }
+}
+
+//
+// DEEP ASYNC
+//
+export class DeepAsync extends Command<CardGameState> {
+  async execute() {
+    this.state.i = 0;
+    return [new DeepOneAsync(), new DeepOneAsync()];
+  }
+}
+
+export class DeepOneAsync extends Command<CardGameState> {
+  async execute() {
+    await this.delay(100);
+    this.state.i += 1;
+    return [new DeepTwoAsync()];
+  }
+}
+
+export class DeepTwoAsync extends Command<CardGameState> {
+  async execute() {
+    await this.delay(100);
+    this.state.i += 10;
+    return [new DeepThreeAsync()];
+  }
+}
+
+export class DeepThreeAsync extends Command<CardGameState> {
+  async execute() {
+    await this.delay(100);
+    this.state.i += 100;
   }
 }

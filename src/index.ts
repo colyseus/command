@@ -37,64 +37,51 @@ export class Dispatcher {
   }
 
   dispatch<T extends Command>(command: T, payload?: T['payload']): void | Promise<unknown> {
-    let nextCommands: any;
+    command.room = this.room;
+    command.state = this.room.state;
+    command.clock = this.room.clock;
 
-    try {
-      command.room = this.room;
-      command.state = this.room.state;
-      command.clock = this.room.clock;
+    if (payload) {
+      command.setPayload(payload);
+    }
 
-      if (payload) {
-        command.setPayload(payload);
-      }
+    if (!command.validate || command.validate(command.payload)) {
+      const result = command.execute(command.payload);
 
-      if (!command.validate || command.validate(command.payload)) {
-        nextCommands = command.execute(command.payload);
+      if (result instanceof Promise) {
+        return (result as Promise<Command[]>).then(async (childCommands) => {
+          const nextCommands = this.getNextCommands(childCommands);
 
-        if (nextCommands instanceof Promise) {
-          return nextCommands.then(childCommands => this.handleCommandResponse(command, childCommands));
-
-        } else {
-          return this.handleCommandResponse(command, nextCommands);
-        }
+          for (let i = 0; i < nextCommands.length; i++) {
+            await this.dispatch(nextCommands[i]);
+          }
+        });
 
       } else {
-        // TODO: log validation failed
+        const nextCommands = this.getNextCommands(result);
+        let lastResult: void | Promise<unknown>;
+
+        for (let i = 0; i < nextCommands.length; i++) {
+          if (lastResult instanceof Promise) {
+            lastResult = lastResult.then(() => this.dispatch(nextCommands[i]));
+
+          } else {
+            lastResult = this.dispatch(nextCommands[i]);
+          }
+        }
+
+        return lastResult;
       }
 
-    } catch (e) {
-      // TODO: log error
-      console.log("ERROR!", e);
-      throw e;
+    } else {
+      // TODO: log validation failed
     }
   }
 
-  private handleCommandResponse(
-    source: Command,
-    nextCommands: void | Command[] | Array<Promise<Command[] | void>>
-  ) {
-    const results: any[] = [];
-
-    //
-    // Trigger next commands!
-    //
-    if (Array.isArray(nextCommands)) {
-
-      for (let i = 0; i < nextCommands.length; i++) {
-        if (!nextCommands[i]) { continue; }
-
-        if (nextCommands[i] instanceof Promise) {
-          results.push(
-            (nextCommands[i] as Promise<Command[] | void>).then((nextCommands) =>
-              this.handleCommandResponse(source, nextCommands))
-          );
-
-        } else {
-          results.push(this.dispatch(nextCommands[i] as Command));
-        }
-      }
-    }
-
-    return Promise.all(results);
+  // | Array<Promise<Command[] | void>>
+  private getNextCommands(nextCommands: void | Command[]): Command[] {
+    return (Array.isArray(nextCommands))
+      ? nextCommands
+      : [];
   }
 }

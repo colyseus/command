@@ -1,5 +1,3 @@
-import { Schema, type } from "@colyseus/schema";
-
 import nanoid from "nanoid";
 
 export class Client {

@@ -1,7 +1,7 @@
 import assert from "assert";
 
 import { Dispatcher } from "../src";
-import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand } from "./scenarios/CardGameScenario";
+import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand, AsyncSequence, DeepAsync, DeepSync } from "./scenarios/CardGameScenario";
 import { Room, Client } from "./mock/colyseus";
 
 describe("@colyseus/action", () => {
@@ -68,6 +68,28 @@ describe("@colyseus/action", () => {
     const dispatcher = new Dispatcher(room);
     await dispatcher.dispatch(new EnqueueAsyncCommand(), { count: 5 });
     assert.equal(25, room.state.i);
+  });
+
+  it("should dequeue async commands in sequence", async () => {
+    const dispatcher = new Dispatcher(room);
+
+    const time = Date.now();
+    await dispatcher.dispatch(new AsyncSequence());
+
+    const elapsedTime = Date.now() - time;
+    assert.ok(elapsedTime >= 300, `elapsed time is ${elapsedTime}, but should've been >= 300`);
+  });
+
+  it("should execute deep sync commands", async () => {
+    const dispatcher = new Dispatcher(room);
+    await dispatcher.dispatch(new DeepSync());
+    assert.equal(222, room.state.i);
+  });
+
+  it("should execute deep async commands", async () => {
+    const dispatcher = new Dispatcher(room);
+    await dispatcher.dispatch(new DeepAsync());
+    assert.equal(222, room.state.i);
   });
 
 });
