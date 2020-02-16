@@ -20,16 +20,18 @@ This is an early version of the Command Pattern to be used along with Colyseus. 
 ## Usage
 
 ```typescript
+import { Room } from "colyseus";
 import { Dispatcher } from "@colyseus/command";
 
-// Room
-onCreate() {
-  this.setState(new YourState());
-  this.dispatcher = new Dispatcher(this);
-}
+class MyRoom extends Room<YourState> {
+  onCreate() {
+    this.setState(new YourState());
+    this.dispatcher = new Dispatcher(this);
+  }
 
-onJoin(client, options) {
-  this.dispatcher.dispatch(new OnJoinCommand(), { sessionId: client.sessionId });
+  onJoin(client, options) {
+    this.dispatcher.dispatch(new OnJoinCommand(), { sessionId: client.sessionId });
+  }
 }
 ```
 
