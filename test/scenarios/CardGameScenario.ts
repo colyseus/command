@@ -152,3 +152,13 @@ export class DeepThreeAsync extends Command<CardGameState> {
     this.state.i += 100;
   }
 }
+
+export class ValidationCommand extends Command<CardGameState, number> {
+  validate(n = this.payload) {
+    return n === 1;
+  }
+
+  execute() {
+    throw new Error("This should never execute!")
+  }
+}

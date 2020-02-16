@@ -1,7 +1,7 @@
 import assert from "assert";
 
 import { Dispatcher } from "../src";
-import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand, AsyncSequence, DeepAsync, DeepSync } from "./scenarios/CardGameScenario";
+import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand, AsyncSequence, DeepAsync, DeepSync, ValidationCommand } from "./scenarios/CardGameScenario";
 import { Room, Client } from "./mock/colyseus";
 
 describe("@colyseus/action", () => {
@@ -10,6 +10,11 @@ describe("@colyseus/action", () => {
   beforeEach(() => {
     room = new Room<CardGameState>();
     room.setState(new CardGameState());
+  });
+
+  it("should validate if command can be executed", () => {
+    const dispatcher = new Dispatcher(room);
+    dispatcher.dispatch(new ValidationCommand(), 2);
   });
 
   it("should perform discard a card", () => {

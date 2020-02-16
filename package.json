@@ -23,6 +23,7 @@
   "homepage": "https://github.com/colyseus/actions#readme",
   "devDependencies": {
     "@colyseus/schema": "^0.5.25",
+    "@types/debug": "^4.1.5",
     "@types/mocha": "^7.0.1",
     "@types/nanoid": "^2.1.0",
     "colyseus": "^0.12.1",
@@ -33,5 +34,8 @@
   },
   "peerDependencies": {
     "colyseus": "^0.12.1"
+  },
+  "dependencies": {
+    "debug": "^4.1.1"
   }
 }

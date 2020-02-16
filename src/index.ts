@@ -1,4 +1,5 @@
 import { Room } from "colyseus";
+const debug = require('debug')('colyseus:commands');
 
 export abstract class Command<State = any, Payload = unknown> {
   payload: Payload;
@@ -46,6 +47,7 @@ export class Dispatcher {
     }
 
     if (!command.validate || command.validate(command.payload)) {
+      debug('%s execute (payload: %j)', command.constructor.name, command.payload);
       const result = command.execute(command.payload);
 
       if (result instanceof Promise) {
@@ -74,7 +76,7 @@ export class Dispatcher {
       }
 
     } else {
-      // TODO: log validation failed
+      debug('%s !! invalid !! (payload: %j)', command.constructor.name, command.payload);
     }
   }
 
