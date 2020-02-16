@@ -48,7 +48,7 @@ export class Dispatcher {
 
     if (!command.validate || command.validate(command.payload)) {
       if (debug.enabled) {
-        debug(`execute -> ${command.constructor.name} ${(command.payload) ? ` (${JSON.stringify(command.payload)})` : ''}`);
+        debug(`execute -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
       }
 
       const result = command.execute(command.payload);
@@ -79,7 +79,7 @@ export class Dispatcher {
       }
 
     } else if (debug.enabled) {
-      debug(`invalid -> ${command.constructor.name} ${(command.payload) ? ` (${JSON.stringify(command.payload)})` : ''}`);
+      debug(`invalid -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
     }
   }
 
