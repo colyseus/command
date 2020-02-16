@@ -1,5 +1,5 @@
 import { Room } from "colyseus";
-const debug = require('debug')('colyseus:commands');
+const debug = require('debug')('colyseus:command');
 
 export abstract class Command<State = any, Payload = unknown> {
   payload: Payload;
@@ -47,7 +47,10 @@ export class Dispatcher {
     }
 
     if (!command.validate || command.validate(command.payload)) {
-      debug('%s execute (payload: %j)', command.constructor.name, command.payload);
+      if (debug.enabled) {
+        debug(`${command.constructor.name} execute${(command.payload) ? ` (${JSON.stringify(command.payload)})` : ''}`);
+      }
+
       const result = command.execute(command.payload);
 
       if (result instanceof Promise) {
@@ -75,8 +78,8 @@ export class Dispatcher {
         return lastResult;
       }
 
-    } else {
-      debug('%s !! invalid !! (payload: %j)', command.constructor.name, command.payload);
+    } else if (debug.enabled) {
+      debug(`${command.constructor.name} !! invalid !!${(command.payload) ? ` (${JSON.stringify(command.payload)})` : ''}`);
     }
   }
 
