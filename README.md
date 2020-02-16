@@ -17,7 +17,33 @@ This is an early version of the Command Pattern to be used along with Colyseus. 
 - Have strict control over how and when commands are invoked.
 - The code is easier to use, understand and test since the commands simplify the code.
 
-## How it works
+## Usage
+
+```typescript
+import { Dispatcher } from "@colyseus/command";
+
+// Room
+onCreate() {
+  this.setState(new YourState());
+  this.dispatcher = new Dispatcher(this);
+}
+
+onJoin(client, options) {
+  this.dispatcher.dispatch(new OnJoinCommand(), { sessionId: client.sessionId });
+}
+```
+
+```typescript
+import { Command } from "@colyseus/command";
+
+export class OnJoinCommand extends Command<YourState, { sessionId: string }> {
+  execute({ sessionId }) {
+    this.state.players[sessionId] = new Player();
+  }
+}
+```
+
+## See more
 
 - See [command definitions](https://github.com/endel/actions/blob/master/test/scenarios/CardGameScenario.ts)
 - See [usage](https://github.com/endel/actions/blob/master/test/Test.ts)
