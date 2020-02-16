@@ -19,6 +19,10 @@ This is an early version of the Command Pattern to be used along with Colyseus. 
 
 ## Usage
 
+```
+npm install --save @colyseus/command
+```
+
 ```typescript
 import { Room } from "colyseus";
 import { Dispatcher } from "@colyseus/command";
