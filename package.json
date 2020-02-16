@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/colyseus/actions.git"
+    "url": "git+https://github.com/colyseus/command.git"
   },
   "keywords": [
     "action",
@@ -18,9 +18,9 @@
   "author": "Endel Dreyer",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/colyseus/actions/issues"
+    "url": "https://github.com/colyseus/command/issues"
   },
-  "homepage": "https://github.com/colyseus/actions#readme",
+  "homepage": "https://github.com/colyseus/command#readme",
   "devDependencies": {
     "@colyseus/schema": "^0.5.25",
     "@types/debug": "^4.1.5",
