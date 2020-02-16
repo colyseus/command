@@ -85,9 +85,9 @@ describe("@colyseus/action", () => {
     assert.ok(elapsedTime >= 300, `elapsed time is ${elapsedTime}, but should've been >= 300`);
   });
 
-  it("should execute deep sync commands", async () => {
+  it("should execute deep sync commands", () => {
     const dispatcher = new Dispatcher(room);
-    await dispatcher.dispatch(new DeepSync());
+    dispatcher.dispatch(new DeepSync());
     assert.equal(222, room.state.i);
   });
 
