@@ -1,7 +1,7 @@
 {
   "name": "@colyseus/command",
-  "version": "0.0.0",
-  "description": "Action dispatcher for Colyseus",
+  "version": "0.1.0",
+  "description": "Command Patter for Colyseus",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha --require ts-node/register test/**Test.ts --timeout 15000"
