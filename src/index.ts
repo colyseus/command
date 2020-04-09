@@ -32,12 +32,22 @@ export abstract class Command<State = any, Payload = unknown> {
 
 export class Dispatcher {
   room: Room;
+  stopped: boolean = false;
 
   constructor(room: any) {
     this.room = room;
   }
 
+  stop() {
+    this.stopped = true;
+  }
+
   dispatch<T extends Command>(command: T, payload?: T['payload']): void | Promise<unknown> {
+    if (this.stopped) {
+      debug(`dispatcher is stopped -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+      return;
+    }
+
     command.room = this.room;
     command.state = this.room.state;
     command.clock = this.room.clock;
