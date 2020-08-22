@@ -33,7 +33,7 @@
     "@types/debug": "^4.1.5",
     "@types/mocha": "^7.0.1",
     "@types/nanoid": "^2.1.0",
-    "colyseus": "^0.12.1",
+    "colyseus": "*",
     "mocha": "^7.0.1",
     "nanoid": "^2.1.11",
     "ts-node": "^8.6.2",
