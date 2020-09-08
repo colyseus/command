@@ -28,11 +28,10 @@ import { Room } from "colyseus";
 import { Dispatcher } from "@colyseus/command";
 
 class MyRoom extends Room<YourState> {
-  dispatcher: Dispatcher;
-    
+  dispatcher: Dispatcher = new Dispatcher(this);;
+
   onCreate() {
     this.setState(new YourState());
-    this.dispatcher = new Dispatcher(this);
   }
 
   onJoin(client, options) {
