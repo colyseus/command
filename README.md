@@ -28,7 +28,7 @@ import { Room } from "colyseus";
 import { Dispatcher } from "@colyseus/command";
 
 class MyRoom extends Room<YourState> {
-  dispatcher: Dispatcher = new Dispatcher(this);;
+  dispatcher: Dispatcher = new Dispatcher(this);
 
   onCreate() {
     this.setState(new YourState());
