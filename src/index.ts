@@ -68,7 +68,7 @@ export class Dispatcher {
           const nextCommands = this.getNextCommands(childCommands);
 
           for (let i = 0; i < nextCommands.length; i++) {
-            await this.dispatch(nextCommands[i]);
+            this.dispatch(nextCommands[i]);
           }
         });
 
