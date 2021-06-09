@@ -17,8 +17,10 @@ export abstract class Command<State = any, Payload = unknown> {
 
   abstract execute(payload: this['payload']):
     Array<Command> |
+    Command |
     void |
     Promise<Array<Command>> |
+    Promise<Command> |
     Promise<unknown>;
 
   /**
@@ -94,9 +96,13 @@ export class Dispatcher {
   }
 
   // | Array<Promise<Command[] | void>>
-  private getNextCommands(nextCommands: void | Command[]): Command[] {
-    return (Array.isArray(nextCommands))
-      ? nextCommands
-      : [];
+  private getNextCommands(nextCommands: void | Command | Command[]): Command[] {
+    if (!nextCommands) {
+      return [];
+    }
+    if (Array.isArray(nextCommands)) {
+      return nextCommands
+    }
+    return [nextCommands];
   }
 }
