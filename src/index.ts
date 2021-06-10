@@ -28,7 +28,7 @@ export abstract class Command<State = any, Payload = unknown> {
    * @param milliseconds
    */
   protected delay(milliseconds: number) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise(resolve => this.clock.setTimeout(resolve, milliseconds));
   }
 }
 
