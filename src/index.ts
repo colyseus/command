@@ -1,11 +1,11 @@
 import { Room } from "colyseus";
 const debug = require('debug')('colyseus:command');
 
-export abstract class Command<State = any, Payload = unknown> {
+export abstract class Command<R extends Room = Room, Payload = unknown> {
   payload: Payload;
 
-  room: Room<State>;
-  state: State;
+  room: R;
+  state: R['state'];
   clock: Room['clock'];
 
   setPayload(payload: this['payload']) {
@@ -28,15 +28,15 @@ export abstract class Command<State = any, Payload = unknown> {
    * @param milliseconds
    */
   protected delay(milliseconds: number) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise(resolve => this.clock.setTimeout(resolve, milliseconds));
   }
 }
 
-export class Dispatcher {
-  room: Room;
+export class Dispatcher<R extends Room> {
+  room: R;
   stopped: boolean = false;
 
-  constructor(room: any) {
+  constructor(room: R) {
     this.room = room;
   }
 

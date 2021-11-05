@@ -1,14 +1,14 @@
 import assert from "assert";
 
 import { Dispatcher } from "../src";
-import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand, AsyncSequence, DeepAsync, DeepSync, ValidationCommand } from "./scenarios/CardGameScenario";
-import { Room, Client } from "./mock/colyseus";
+import { CardGameState, Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand, AsyncSequence, DeepAsync, DeepSync, ValidationCommand, CardGameRoom } from "./scenarios/CardGameScenario";
+import { Client } from "./mock/colyseus";
 
 describe("@colyseus/action", () => {
-  let room: Room<CardGameState>;
+  let room: CardGameRoom;
 
   beforeEach(() => {
-    room = new Room<CardGameState>();
+    room = new CardGameRoom();
     room.setState(new CardGameState());
   });
 
