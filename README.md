@@ -43,7 +43,7 @@ class MyRoom extends Room<YourState> {
 ```typescript
 import { Command } from "@colyseus/command";
 
-export class OnJoinCommand extends Command<YourState, { sessionId: string }> {
+export class OnJoinCommand extends Command<MyRoom, { sessionId: string }> {
   execute({ sessionId }) {
     this.state.players[sessionId] = new Player();
   }
