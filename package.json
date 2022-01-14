@@ -1,12 +1,12 @@
 {
   "name": "@colyseus/command",
-  "version": "0.2.0",
-  "description": "Command Patter for Colyseus",
+  "version": "0.2.1",
+  "description": "Command Pattern for Colyseus",
   "main": "lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
     "test": "mocha --require ts-node/register test/**Test.ts --timeout 15000",
-    "prepublish": "tsc"
+    "prepublishOnly": "tsc"
   },
   "files": [
     "lib",
