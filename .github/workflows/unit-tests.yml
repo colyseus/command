@@ -8,7 +8,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: npm i
-        run: npm i
-      - name: npm t
-        run: npm t
+      - run: npm i
+      - run: npm t
