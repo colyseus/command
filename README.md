@@ -1,5 +1,5 @@
 # @colyseus/command
 
-<img src="https://img.shields.io/travis/colyseus/command.svg?style=for-the-badge" alt="Build status" />
+[![Unit Tests](https://github.com/colyseus/command/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/colyseus/command/actions/workflows/unit-tests.yml)
 
 See how to use it on the [documentation](https://docs.colyseus.io/colyseus/best-practices/overview/#the-command-pattern).
