@@ -44,6 +44,10 @@ export class Dispatcher<R extends Room> {
     this.stopped = true;
   }
 
+  resume() {
+    this.stopped = false;
+  }
+
   dispatch<T extends Command>(command: T, payload?: T['payload']): void | Promise<unknown> {
     if (this.stopped) {
       debug(`dispatcher is stopped -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
@@ -58,40 +62,43 @@ export class Dispatcher<R extends Room> {
       command.setPayload(payload);
     }
 
-    if (!command.validate || command.validate(command.payload)) {
-      if (debug.enabled) {
-        debug(`execute -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
-      }
+    if (command.validate && !command.validate(command.payload)) {
+      debug(`invalid -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+      return;
+    }
 
-      const result = command.execute(command.payload);
+    if (debug.enabled) {
+      debug(`execute -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+    }
 
-      if (result instanceof Promise) {
-        return (result as Promise<Command[]>).then(async (childCommands) => {
-          const nextCommands = this.getNextCommands(childCommands);
+    const result = command.execute(command.payload);
 
-          for (let i = 0; i < nextCommands.length; i++) {
-            await this.dispatch(nextCommands[i]);
-          }
-        });
-
-      } else {
-        const nextCommands = this.getNextCommands(result);
-        let lastResult: void | Promise<unknown>;
+    if (result instanceof Promise) {
+      return (result as Promise<Command[]>).then(async (childCommands) => {
+        const nextCommands = this.getNextCommands(childCommands);
 
         for (let i = 0; i < nextCommands.length; i++) {
-          if (lastResult instanceof Promise) {
-            lastResult = lastResult.then(() => this.dispatch(nextCommands[i]));
-
-          } else {
-            lastResult = this.dispatch(nextCommands[i]);
-          }
+          await this.dispatch(nextCommands[i]);
         }
+      });
+    }
 
-        return lastResult;
+    const nextCommands = this.getNextCommands(result)
+    const hasNextCommands = !!nextCommands.length
+
+    if (hasNextCommands) {
+      let lastResult: void | Promise<unknown>;
+
+      for (let i = 0; i < nextCommands.length; i++) {
+        if (lastResult instanceof Promise) {
+          lastResult = lastResult.then(() => this.dispatch(nextCommands[i]));
+
+        } else {
+          lastResult = this.dispatch(nextCommands[i]);
+        }
       }
 
-    } else if (debug.enabled) {
-      debug(`invalid -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+      return lastResult;
     }
   }
 
