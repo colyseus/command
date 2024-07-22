@@ -15,10 +15,10 @@ describe("@colyseus/action", () => {
   it("should validate if command can be executed", () => {
     const dispatcher = new Dispatcher(room);
 
-    let error: string;
+    let error: string | undefined;
     try {
       dispatcher.dispatch(new ValidationCommand(), 1);
-    } catch (e) {
+    } catch (e: any) {
       error = e.message;
     }
 
@@ -26,12 +26,12 @@ describe("@colyseus/action", () => {
   });
 
   it("should reject if command can't be validated", async () => {
-    let error: string;
+    let error: string | undefined;
 
     const dispatcher = new Dispatcher(room);
     try {
       await dispatcher.dispatch(new ValidationCommand(), 10);
-    } catch (e) {
+    } catch (e: any) {
       error = e.message;
     }
 

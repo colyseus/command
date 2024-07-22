@@ -67,7 +67,7 @@ export class Dispatcher<R extends Room> {
     if (command.validate && !command.validate(command.payload)) {
       const commandPayload = `${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`;
       debugCommand(`invalid -> ${command.constructor.name} ${commandPayload}`);
-      throw new Error(`${command.constructor.name} invalid -> ${commandPayload}`);
+      throw new Error(`${command.constructor.name}: invalid -> ${commandPayload}`);
     }
 
     if (debugCommand.enabled) {
