@@ -1,15 +1,23 @@
 {
   "name": "@colyseus/command",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Command Pattern for Colyseus",
-  "main": "lib/index.js",
-  "typings": "./lib/index.d.ts",
+  "main": "./build/index.js",
+  "module": "./build/index.mjs",
+  "typings": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/index.mjs",
+      "require": "./build/index.js"
+    }
+  },
   "scripts": {
-    "test": "mocha --require ts-node/register test/**Test.ts --timeout 15000",
-    "prepublishOnly": "tsc"
+    "build": "tsc --emitDeclarationOnly && node build.mjs",
+    "test": "mocha --require ts-node/register test/**.test.ts --timeout 15000",
+    "prepublishOnly": "npm run build"
   },
   "files": [
-    "lib",
+    "build",
     "LICENSE",
     "README.md"
   ],
@@ -34,10 +42,12 @@
     "@types/mocha": "^7.0.1",
     "@types/nanoid": "^2.1.0",
     "colyseus": "*",
+    "esbuild": "^0.23.0",
+    "fast-glob": "^3.3.2",
     "mocha": "^7.0.1",
     "nanoid": "^2.1.11",
     "ts-node": "^8.6.2",
-    "typescript": "^3.7.5"
+    "typescript": "^5.3.3"
   },
   "peerDependencies": {
     "colyseus": "*"

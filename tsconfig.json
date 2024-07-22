@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "lib",
+        "outDir": "build",
         "module": "commonjs",
         "lib": ["es5"],
         "target": "es2015",
@@ -10,7 +10,8 @@
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "noImplicitAny": false,
-        "sourceMap": false
+        "sourceMap": false,
+        "skipLibCheck": true
     },
     "include": [
       "src/**/*.ts"

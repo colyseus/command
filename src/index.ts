@@ -1,5 +1,7 @@
-import { Room } from "colyseus";
-const debug = require('debug')('colyseus:command');
+import type { Room } from "colyseus";
+
+import debug from "debug";
+const debugCommand = debug('colyseus:command');
 
 export abstract class Command<R extends Room = Room, Payload = unknown> {
   payload: Payload;
@@ -50,7 +52,7 @@ export class Dispatcher<R extends Room> {
 
   dispatch<T extends Command>(command: T, payload?: T['payload']): void | Promise<unknown> {
     if (this.stopped) {
-      debug(`dispatcher is stopped -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+      debugCommand(`dispatcher is stopped -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
       return;
     }
 
@@ -63,12 +65,13 @@ export class Dispatcher<R extends Room> {
     }
 
     if (command.validate && !command.validate(command.payload)) {
-      debug(`invalid -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
-      return;
+      const commandPayload = `${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`;
+      debugCommand(`invalid -> ${command.constructor.name} ${commandPayload}`);
+      throw new Error(`${command.constructor.name} invalid -> ${commandPayload}`);
     }
 
-    if (debug.enabled) {
-      debug(`execute -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+    if (debugCommand.enabled) {
+      debugCommand(`execute -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
     }
 
     const result = command.execute(command.payload);
