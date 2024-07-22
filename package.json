@@ -1,6 +1,6 @@
 {
   "name": "@colyseus/command",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Command Pattern for Colyseus",
   "main": "./build/index.js",
   "module": "./build/index.mjs",
@@ -47,7 +47,7 @@
     "mocha": "^7.0.1",
     "nanoid": "^2.1.11",
     "ts-node": "^8.6.2",
-    "typescript": "^5.3.3"
+    "typescript": "^3.7.5"
   },
   "peerDependencies": {
     "colyseus": "*"
