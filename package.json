@@ -1,6 +1,6 @@
 {
   "name": "@colyseus/command",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Command Pattern for Colyseus",
   "main": "./build/index.js",
   "module": "./build/index.mjs",
