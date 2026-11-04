@@ -18,7 +18,7 @@ export class CardGameState {
   i: number;
 }
 
-export class CardGameRoom extends Room<CardGameState> {
+export class CardGameRoom extends Room<{ state: CardGameState }> {
 }
 export class NextTurnCommand extends Command<CardGameRoom, {}> {
   execute() {

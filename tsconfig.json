@@ -1,16 +1,15 @@
 {
     "compilerOptions": {
+        "rootDir": "src",
         "outDir": "build",
-        "module": "commonjs",
-        "lib": ["es5"],
-        "target": "es2015",
+        "module": "preserve",
+        "target": "es2022",
+        "types": [],
         "declaration": true,
         "strict": true,
         "strictNullChecks": false,
         "esModuleInterop": true,
-        "experimentalDecorators": true,
         "noImplicitAny": false,
-        "sourceMap": false,
         "skipLibCheck": true
     },
     "include": [
