@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import glob from 'fast-glob';
 import { fileURLToPath } from 'url';
@@ -47,6 +48,13 @@ async function main() {
       },
     }]
   });
+
+  // ESM-format declarations for the "import" condition; a plain copy holds
+  // while the declarations have no relative imports
+  console.log("Generating ESM declarations...");
+  for (const file of glob.sync(path.join(outdir, "**", "*.d.ts").replace(/\\/g, '/'))) {
+    fs.copyFileSync(file, file.replace(/\.d\.ts$/, ".d.mts"));
+  }
 
   console.log("Done!");
 }

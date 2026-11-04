@@ -6,7 +6,16 @@ name: Unit Tests
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # oldest release under 2 years old (bump as it ages out), last JS-based compiler, latest
+        typescript: ['5.7', '6.0', 'latest']
+    name: TypeScript ${{ matrix.typescript }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
       - run: npm i
+      - run: npm i --no-save typescript@${{ matrix.typescript }}
       - run: npm t
