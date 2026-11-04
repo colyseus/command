@@ -1,4 +1,5 @@
 import assert from "assert";
+import debug from "debug";
 
 import { Dispatcher } from "../src";
 import { Player, Card, DiscardCommand, DrawCommand, EnqueueCommand, EnqueueAsyncCommand, AsyncSequence, DeepAsync, DeepSync, CardGameRoom, ValidationCommand } from "./scenarios/CardGameScenario";
@@ -22,6 +23,25 @@ describe("@colyseus/action", () => {
     }
 
     assert.strictEqual('This should never execute!', error);
+  });
+
+  it("should not throw on a circular payload when validate() fails", () => {
+    const dispatcher = new Dispatcher(room);
+    const client: any = { sessionId: "a" };
+    client.self = client;
+
+    assert.strictEqual(dispatcher.dispatch(new ValidationCommand(), client), undefined);
+
+    // the debug log serializes the payload, so it must survive this too
+    const log = debug.log;
+    debug.log = () => {};
+    debug.enable("colyseus:command");
+    try {
+      assert.strictEqual(dispatcher.dispatch(new ValidationCommand(), client), undefined);
+    } finally {
+      debug.disable();
+      debug.log = log;
+    }
   });
 
   xit("should reject if command can't be validated", async () => {

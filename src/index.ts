@@ -77,7 +77,7 @@ export class Dispatcher<R extends Room> {
 
   dispatch<T extends Command>(command: T, payload?: T['payload']): DispatchResult<T> | undefined {
     if (this.stopped) {
-      debugCommand(`dispatcher is stopped -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
+      log('dispatcher is stopped', command);
       return undefined;
     }
 
@@ -90,15 +90,11 @@ export class Dispatcher<R extends Room> {
     }
 
     if (command.validate && !command.validate(command.payload)) {
-      const commandPayload = `${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`;
-      debugCommand(`invalid -> ${command.constructor.name} ${commandPayload}`);
+      log('invalid', command);
       return undefined;
-      // throw new Error(`${command.constructor.name}: invalid -> ${commandPayload}`);
     }
 
-    if (debugCommand.enabled) {
-      debugCommand(`execute -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
-    }
+    log('execute', command);
 
     const result = command.execute(command.payload);
 
@@ -153,4 +149,11 @@ function getChildCommands(result: unknown): Command[] | undefined {
     return result;
   }
   return undefined;
+}
+
+function log(event: string, command: Command) {
+  // guarded so disabled logging costs nothing; %o (util.inspect) can't throw on circular payloads
+  if (debugCommand.enabled) {
+    debugCommand('%s -> %s %o', event, command.constructor.name, command.payload);
+  }
 }
