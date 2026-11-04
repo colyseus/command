@@ -3,6 +3,20 @@ import type { Room } from "colyseus";
 import debug from "debug";
 const debugCommand = debug('colyseus:command');
 
+type SyncResult<R> = R extends Command | Command[] ? void | Promise<void> : R;
+type AsyncResult<R> = R extends Command | Command[] ? void : R;
+type Result<R> = R extends Promise<infer U> ? Promise<AsyncResult<U>> : SyncResult<R>;
+
+/**
+ * What `dispatcher.dispatch(command)` returns, given the return type of
+ * `command.execute()`. Returned commands are dispatched as children and
+ * produce no value; anything else is passed through.
+ *
+ * `undefined` is also possible when the dispatcher is stopped or `validate()`
+ * fails.
+ */
+export type DispatchResult<T extends Command> = Result<ReturnType<T['execute']>>;
+
 export abstract class Command<R extends Room = Room, Payload = unknown> {
   payload: Payload;
 
@@ -17,13 +31,24 @@ export abstract class Command<R extends Room = Room, Payload = unknown> {
 
   validate?(payload: this['payload']): boolean;
 
-  abstract execute(payload: this['payload']):
-    Array<Command> |
-    Command |
-    void |
-    Promise<Array<Command>> |
-    Promise<Command> |
-    Promise<unknown>;
+  /**
+   * Runs the command. The return value decides what happens next:
+   *
+   * - A `Command`, or an array containing commands: they're dispatched in
+   *   sequence after this one, and `dispatch()` returns nothing.
+   * - Anything else: returned as-is from `dispatch()` (or resolved by its
+   *   promise, when `execute()` is async).
+   *
+   * @example
+   * class RollDice extends Command<MyRoom, { sides: number }> {
+   *   execute({ sides } = this.payload) {
+   *     return Math.ceil(Math.random() * sides);
+   *   }
+   * }
+   *
+   * const roll = this.dispatcher.dispatch(new RollDice(), { sides: 6 }); // number
+   */
+  abstract execute(payload: this['payload']): unknown;
 
   /**
    * Delay the execution by `milliseconds`
@@ -50,10 +75,10 @@ export class Dispatcher<R extends Room> {
     this.stopped = false;
   }
 
-  dispatch<T extends Command>(command: T, payload?: T['payload']): void | Promise<unknown> {
+  dispatch<T extends Command>(command: T, payload?: T['payload']): DispatchResult<T> | undefined {
     if (this.stopped) {
       debugCommand(`dispatcher is stopped -> ${command.constructor.name} ${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`);
-      return;
+      return undefined;
     }
 
     command.room = this.room;
@@ -67,7 +92,7 @@ export class Dispatcher<R extends Room> {
     if (command.validate && !command.validate(command.payload)) {
       const commandPayload = `${(command.payload) ? `(${JSON.stringify(command.payload)})` : ''}`;
       debugCommand(`invalid -> ${command.constructor.name} ${commandPayload}`);
-      return;
+      return undefined;
       // throw new Error(`${command.constructor.name}: invalid -> ${commandPayload}`);
     }
 
@@ -78,42 +103,54 @@ export class Dispatcher<R extends Room> {
     const result = command.execute(command.payload);
 
     if (result instanceof Promise) {
-      return (result as Promise<Command[]>).then(async (childCommands) => {
-        const nextCommands = this.getNextCommands(childCommands);
-
-        for (let i = 0; i < nextCommands.length; i++) {
-          await this.dispatch(nextCommands[i]);
+      return result.then(async (value) => {
+        const children = getChildCommands(value);
+        if (!children) {
+          return value;
         }
-      });
+
+        for (let i = 0; i < children.length; i++) {
+          await this.dispatch(children[i]);
+        }
+      }) as DispatchResult<T>;
     }
 
-    const nextCommands = this.getNextCommands(result)
-    const hasNextCommands = !!nextCommands.length
+    const children = getChildCommands(result);
+    if (!children) {
+      return result as DispatchResult<T>;
+    }
 
-    if (hasNextCommands) {
-      let lastResult: void | Promise<unknown>;
+    // stay synchronous until a child turns out to be async
+    let pending: Promise<unknown> | undefined;
+    for (let i = 0; i < children.length; i++) {
+      if (pending) {
+        pending = pending.then(() => this.dispatch(children[i]));
 
-      for (let i = 0; i < nextCommands.length; i++) {
-        if (lastResult instanceof Promise) {
-          lastResult = lastResult.then(() => this.dispatch(nextCommands[i]));
-
-        } else {
-          lastResult = this.dispatch(nextCommands[i]);
+      } else {
+        const childResult = this.dispatch(children[i]);
+        if (childResult instanceof Promise) {
+          pending = childResult;
         }
       }
+    }
 
-      return lastResult;
-    }
+    // children's own results aren't the parent's
+    return pending?.then(() => undefined) as DispatchResult<T>;
   }
+}
 
-  // | Array<Promise<Command[] | void>>
-  private getNextCommands(nextCommands: void | Command | Command[]): Command[] {
-    if (!nextCommands) {
-      return [];
-    }
-    if (Array.isArray(nextCommands)) {
-      return nextCommands
-    }
-    return [nextCommands];
+// duck-typed: `instanceof` breaks when both the CJS and ESM builds get loaded
+function isCommand(value: any): value is Command {
+  return typeof value?.execute === "function";
+}
+
+function getChildCommands(result: unknown): Command[] | undefined {
+  if (isCommand(result)) {
+    return [result];
   }
+  // a stray non-command still fails loudly instead of skipping its siblings
+  if (Array.isArray(result) && result.some(isCommand)) {
+    return result;
+  }
+  return undefined;
 }
