@@ -18,11 +18,13 @@ type Result<R> = R extends Promise<infer U> ? Promise<AsyncResult<U>> : SyncResu
 export type DispatchResult<T extends Command> = Result<ReturnType<T['execute']>>;
 
 export abstract class Command<R extends Room = Room, Payload = unknown> {
-  payload: Payload;
+  // `declare`: under define semantics esbuild would emit a __publicField() call
+  // per field, making every `new Command()` and dispatch 3-4x slower
+  declare payload: Payload;
 
-  room: R;
-  state: R['state'];
-  clock: Room['clock'];
+  declare room: R;
+  declare state: R['state'];
+  declare clock: Room['clock'];
 
   setPayload(payload: this['payload']) {
     this.payload = payload;
@@ -99,39 +101,10 @@ export class Dispatcher<R extends Room> {
     const result = command.execute(command.payload);
 
     if (result instanceof Promise) {
-      return result.then(async (value) => {
-        const children = getChildCommands(value);
-        if (!children) {
-          return value;
-        }
-
-        for (let i = 0; i < children.length; i++) {
-          await this.dispatch(children[i]);
-        }
-      }) as DispatchResult<T>;
+      return dispatchResolved(this, result) as DispatchResult<T>;
     }
 
-    const children = getChildCommands(result);
-    if (!children) {
-      return result as DispatchResult<T>;
-    }
-
-    // stay synchronous until a child turns out to be async
-    let pending: Promise<unknown> | undefined;
-    for (let i = 0; i < children.length; i++) {
-      if (pending) {
-        pending = pending.then(() => this.dispatch(children[i]));
-
-      } else {
-        const childResult = this.dispatch(children[i]);
-        if (childResult instanceof Promise) {
-          pending = childResult;
-        }
-      }
-    }
-
-    // children's own results aren't the parent's
-    return pending?.then(() => undefined) as DispatchResult<T>;
+    return (hasCommands(result) ? dispatchChildren(this, result) : result) as DispatchResult<T>;
   }
 }
 
@@ -140,14 +113,47 @@ function isCommand(value: any): value is Command {
   return typeof value?.execute === "function";
 }
 
-function getChildCommands(result: unknown): Command[] | undefined {
-  if (isCommand(result)) {
-    return [result];
+function hasCommands(result: unknown): result is Command | Command[] {
+  // isArray first: probing `execute` on an array walks its whole prototype chain.
+  // A stray non-command still fails loudly instead of skipping its siblings.
+  return Array.isArray(result) ? result.some(isCommand) : isCommand(result);
+}
+
+// kept out of dispatch(): a closure there makes every call allocate a context
+function dispatchResolved(dispatcher: Dispatcher<any>, result: Promise<unknown>) {
+  return result.then((value) => (hasCommands(value) ? dispatchChildren(dispatcher, value) : value));
+}
+
+/**
+ * Dispatches children in order without yielding while they're synchronous,
+ * and returns a promise only once one turns out async. Children's own results
+ * aren't the parent's.
+ */
+function dispatchChildren(dispatcher: Dispatcher<any>, children: Command | Command[]): Promise<void> | undefined {
+  if (!Array.isArray(children)) {
+    const result = dispatcher.dispatch(children);
+    return (result instanceof Promise) ? result.then(toUndefined) : undefined;
   }
-  // a stray non-command still fails loudly instead of skipping its siblings
-  if (Array.isArray(result) && result.some(isCommand)) {
-    return result;
+  for (let i = 0; i < children.length; i++) {
+    const result = dispatcher.dispatch(children[i]);
+    if (result instanceof Promise) {
+      return dispatchRest(dispatcher, children, i + 1, result);
+    }
   }
+  return undefined;
+}
+
+async function dispatchRest(dispatcher: Dispatcher<any>, children: Command[], i: number, pending: Promise<unknown>) {
+  await pending;
+  for (; i < children.length; i++) {
+    const result = dispatcher.dispatch(children[i]);
+    if (result instanceof Promise) {
+      await result;
+    }
+  }
+}
+
+function toUndefined() {
   return undefined;
 }
 
